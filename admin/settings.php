@@ -20,7 +20,7 @@ $payment_methods = explode(',', $settings['payment_methods']);
 
 <?php include __DIR__ . '/../includes/header.php'; ?>
 <div class="row">
-    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
+    <!-- <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
         <div class="position-sticky pt-3">
             <h4 class="text-white text-center fw-bold">Admin Panel</h4>
             <ul class="nav flex-column">
@@ -31,8 +31,8 @@ $payment_methods = explode(',', $settings['payment_methods']);
                 <li class="nav-item"><a class="nav-link active" href="/ride-sharing-app/admin/settings.php"><i class="bi bi-gear-fill me-2"></i> Settings</a></li>
             </ul>
         </div>
-    </nav>
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+    </nav> -->
+    <main class="col-md-9 ms-sm-auto col-lg-12 px-md-4">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
             <h1 class="h2 fw-bold text-primary">Platform Settings</h1>
         </div>

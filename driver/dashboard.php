@@ -1,62 +1,50 @@
 <?php
 session_start();
 require_once __DIR__ . '/../includes/db.php';
-if ($_SESSION['role'] !== 'driver') {
+if ($_SESSION['role'] !== 'driver' || !$pdo->query("SELECT verified FROM users WHERE id = {$_SESSION['user_id']}")->fetchColumn()) {
     header("Location: /ride-sharing-app/login.php");
     exit;
 }
 
-$total_rides = $pdo->query("SELECT COUNT(*) FROM rides WHERE driver_id = {$_SESSION['user_id']}")->fetchColumn();
-$total_bookings = $pdo->query("SELECT COUNT(*) FROM ride_bookings rb JOIN rides r ON rb.ride_id = r.id WHERE r.driver_id = {$_SESSION['user_id']}")->fetchColumn();
+$total_earnings = $pdo->query("SELECT SUM(total_fare) FROM ride_bookings WHERE ride_id IN (SELECT id FROM rides WHERE driver_id = {$_SESSION['user_id']}) AND status = 'approved'")->fetchColumn() ?? 0;
+$total_commission = $pdo->query("SELECT SUM(commission) FROM ride_bookings WHERE ride_id IN (SELECT id FROM rides WHERE driver_id = {$_SESSION['user_id']}) AND status = 'approved'")->fetchColumn() ?? 0;
+$net_earnings = $total_earnings - $total_commission;
+$monthly_earnings = $pdo->query("SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, SUM(total_fare - commission) AS net FROM ride_bookings WHERE ride_id IN (SELECT id FROM rides WHERE driver_id = {$_SESSION['user_id']}) AND status = 'approved' GROUP BY month ORDER BY month")->fetchAll(PDO::FETCH_ASSOC);
+$page_title = "Driver Dashboard";
 ?>
 
 <?php include __DIR__ . '/../includes/header.php'; ?>
 <div class="row">
-    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
-        <div class="position-sticky pt-3">
-            <h4 class="text-white text-center fw-bold">Driver Panel</h4>
-            <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link active" href="/ride-sharing-app/driver/dashboard.php"><i class="bi bi-house-fill me-2"></i> Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="/ride-sharing-app/driver/post_ride.php"><i class="bi bi-plus-circle-fill me-2"></i> Post Ride</a></li>
-                <li class="nav-item"><a class="nav-link" href="/ride-sharing-app/driver/my_rides.php"><i class="bi bi-car-front-fill me-2"></i> My Rides</a></li>
-                <li class="nav-item"><a class="nav-link" href="/ride-sharing-app/driver/bookings.php"><i class="bi bi-calendar-check-fill me-2"></i> Bookings</a></li>
-                <li class="nav-item"><a class="nav-link" href="/ride-sharing-app/messages.php"><i class="bi bi-chat-fill me-2"></i> Messages</a></li>
-                <li class="nav-item"><a class="nav-link" href="/ride-sharing-app/edit_profile.php"><i class="bi bi-person-fill me-2"></i> Profile</a></li>
-            </ul>
+    <div class="col-md-12">
+        <div class="row g-4 mb-4">
+            <div class="col-md-4"><div class="card text-center p-3"><h5>Total Earnings</h5><p class="display-6"><?php echo number_format($total_earnings, 2); ?></p></div></div>
+            <div class="col-md-4"><div class="card text-center p-3"><h5>Total Commission</h5><p class="display-6"><?php echo number_format($total_commission, 2); ?></p></div></div>
+            <div class="col-md-4"><div class="card text-center p-3"><h5>Net Earnings</h5><p class="display-6"><?php echo number_format($net_earnings, 2); ?></p></div></div>
         </div>
-    </nav>
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2 fw-bold text-primary">Driver Dashboard</h1>
-        </div>
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="card text-center bg-success text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Rides Posted</h5>
-                        <p class="card-text display-6 fw-bold"><?php echo $total_rides; ?></p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card text-center bg-info text-white">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Bookings</h5>
-                        <p class="card-text display-6 fw-bold"><?php echo $total_bookings; ?></p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h5 class="card-title fw-semibold">Ready to Ride?</h5>
-                        <p class="card-text">Post a new ride and start earning!</p>
-                        <a href="/ride-sharing-app/driver/post_ride.php" class="btn btn-primary">Post a Ride</a>
-                    </div>
-                </div>
+        <div class="card">
+            <div class="card-body">
+                <h5>Earnings Over Time</h5>
+                <canvas id="earningsChart" height="100"></canvas>
             </div>
         </div>
-    </main>
+    </div>
 </div>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script>
+const ctx = document.getElementById('earningsChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [<?php echo "'" . implode("','", array_column($monthly_earnings, 'month')) . "'"; ?>],
+        datasets: [{
+            label: 'Net Earnings',
+            data: [<?php echo implode(',', array_column($monthly_earnings, 'net')); ?>],
+            borderColor: '#F4A261',
+            tension: 0.4,
+            fill: true,
+            backgroundColor: 'rgba(244, 162, 97, 0.2)'
+        }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+});
+</script>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

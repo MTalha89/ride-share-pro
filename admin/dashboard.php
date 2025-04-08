@@ -15,7 +15,7 @@ $monthly_users = $pdo->query("SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, 
 <?php include __DIR__ . '/../includes/header.php'; ?>
 <div class="container-fluid">
     <div class="row">
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
+        <!-- <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
             <div class="position-sticky pt-3">
                 <h4 class="text-center">Admin Panel</h4>
                 <ul class="nav flex-column">
@@ -30,8 +30,8 @@ $monthly_users = $pdo->query("SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, 
                     <li class="nav-item"><a class="nav-link" href="/ride-sharing-app/logout.php"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
                 </ul>
             </div>
-        </nav>
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        </nav> -->
+        <main class="col-md-9 ms-sm-auto col-lg-12 px-md-4">
             <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom">
                 <h1 class="h2">Admin Dashboard</h1>
             </div>
