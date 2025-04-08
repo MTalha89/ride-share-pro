@@ -21,7 +21,8 @@ CREATE TABLE vehicle_types (
     max_price_per_km DECIMAL(10, 2) NOT NULL,
     commission_type ENUM('percentage', 'fixed') DEFAULT 'percentage',
     commission_value DECIMAL(10, 2) DEFAULT 0,
-    commission_enabled BOOLEAN DEFAULT FALSE
+    commission_enabled BOOLEAN DEFAULT FALSE,
+    image_path VARCHAR(255)
 );
 
 CREATE TABLE rides (
@@ -80,6 +81,21 @@ CREATE TABLE driver_documents_uploaded (
     FOREIGN KEY (driver_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE car_fields (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    field_name VARCHAR(50) UNIQUE NOT NULL,
+    field_type ENUM('text', 'number', 'select') NOT NULL,
+    is_required BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE driver_cars (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    driver_id INT NOT NULL,
+    field_name VARCHAR(50) NOT NULL,
+    field_value VARCHAR(255) NOT NULL,
+    FOREIGN KEY (driver_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     setting_key VARCHAR(50) UNIQUE NOT NULL,
@@ -94,6 +110,14 @@ INSERT INTO driver_documents (doc_name, is_required) VALUES
 ('driving_license', 1),
 ('id_card', 0),
 ('profile_pic', 0);
+
+INSERT INTO car_fields (field_name, field_type, is_required) VALUES
+('car_number', 'text', 1),
+('model_year', 'number', 1),
+('color', 'select', 1),
+('company', 'text', 1),
+('car_name', 'text', 1),
+('seats', 'number', 1);
 
 INSERT INTO vehicle_types (type_name, min_price_fixed, max_price_fixed, min_price_per_km, max_price_per_km, commission_type, commission_value, commission_enabled) VALUES
 ('Sedan', 500, 1500, 20, 50, 'percentage', 10, 1),
